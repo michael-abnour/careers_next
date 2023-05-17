@@ -1,9 +1,113 @@
-import React from "react";
-import {MdWork} from "react-icons/md"
+import { getSkills } from "@/store/Skills";
+import { Button, CircularProgress, InputLabel, MenuItem, Select } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { BsArrowRight, BsFileEarmarkArrowUp } from "react-icons/bs";
+import {MdDone, MdOutlineWork, MdWork, MdWorkOutline} from "react-icons/md"
+import { useDispatch, useSelector } from "react-redux";
+
+import Upload from "./Upload";
+import toast, { Toaster } from 'react-hot-toast';
+import { createJobApplication } from "@/store/JobApplications";
+import Link from "next/link";
+import AOS from "aos";
+
+import "aos/dist/aos.css";
 
 const Apply = ({setOpen, job}) => {
+  const [file, setFile] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [isCreated, setIsCreated] = useState(false)
+  const [jobApp, setJobApp] = useState({
+    jobId: job?.id,
+    name: '',
+    email: '',
+    experience: '',
+    applicationSkills: [''],
+    currSalary: 0,
+    currSalaryRate: '',
+    expectedSalary: 0,
+    expectedSalaryRate: '',
+    noticePeriod: 0,
+    source: '',
+    location: '',
+    phone: ''
+  })
+  const dispatch = useDispatch()
+  const {Skills} = useSelector(state => state.Skills)
+
+  useEffect(() => {
+    dispatch(getSkills())
+  }, [dispatch])
+
+  useEffect(() => {
+    AOS.init({
+      easing: "ease-out-cubic",
+      once: true,
+      offset: 50,
+    });
+  }, []);
+
+
+  const handleCreate = async e => {
+    e.preventDefault()
+    setLoading(true)
+    console.log(jobApp)
+
+    const formData = new FormData()
+    formData.append('resume', file[0])
+    for (const key in jobApp) {
+      if (key == 'applicationSkills') {
+        for (let i = 0; i < jobApp[key].length; i++) {
+          formData.append(`${key}[${i}]`, jobApp[key][i])
+        }
+        continue
+      }
+      formData.append(key, jobApp[key])
+    }
+    for (var pair of formData.entries()) {
+      console.log(pair[0] + ', ' + pair[1])
+    }
+    await dispatch(createJobApplication(formData)).then(res => {
+      setLoading(false)
+      switch (res?.payload?.resCode) {
+        case 201:
+          toast.success('Job Application Created Successfully', {
+            duration: 2000
+          })
+          setIsCreated(true)
+          setTimeout(() => {
+            setIsCreated(true)
+          }, 2000)
+          break
+        case 500:
+          setOpen(!open)
+          toast.error('Internal Server Error.', {
+            duration: 2000
+          })
+          break
+        default:
+      }
+    })
+  }
+
+
   return (
+
+    <>
+    {isCreated ?     
+    <div className={'successParent'} data-aos="fade-up" data-aos-duration="500">
+      <img src='/done.svg' style={{width: "300px"}}/>
+      <h2 className={'successMsg'}>
+        Your Application has been submitted successfully <MdDone />
+      </h2>
+      <Link href={'/'}>
+        <button className="btn btn-primary me-3 px-3 coloredBtn">
+          Go Back To Home
+        </button>
+      </Link>
+    </div> :     
     <section className="bg-light">
+      <Toaster />
       <div className="container">
         <div className="border border-1 border-opacity-10 bg-white">
           <div>
@@ -34,14 +138,16 @@ const Apply = ({setOpen, job}) => {
       <div className="text-dark py-5 mt-5 ">
         <div className="container bg-white border border-1 border-opacity-10 bg-white">
           
-          <h2 className="py-3  px-0  bg-white">
-          Job Title : {job.jobTitle}
-          </h2>
+          <h6 className="py-3  px-0  bg-white text-center" style={{fontSize: '28px', borderBottom: '1px solid #EEE'}}>
+         Applying To Job: {job?.designation?.DesignationName} {job?.job?.JobTitle}
+          </h6>
 
-          <h2 className="py-3  px-0 border-bottom border-1 border-opacity-10 bg-white">
-            Personal Information 
+          <h4 className="py-3  px-0  bg-white d-flex align-items-center gap-2">
+          <BsFileEarmarkArrowUp />  Personal Information 
 
-          </h2>
+          </h4>
+          <form  onSubmit={e => handleCreate(e)}>
+            
           <div className="row">
             <div className="col-md-4">
               <div className="mb-4">
@@ -49,10 +155,15 @@ const Apply = ({setOpen, job}) => {
                   Full Name
                 </label>
                 <input
+                required
                   type="text"
                   className="form-control"
                   id="name"
                   placeholder="e.g. John Doe"
+                  value={jobApp.name}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, name: e.target.value })
+                  }}
                 />
               </div>
             </div>
@@ -63,10 +174,15 @@ const Apply = ({setOpen, job}) => {
                   Email
                 </label>
                 <input
+                required
                   type="email"
                   className="form-control"
                   id="email"
                   placeholder="e.g. johndoe@example.com"
+                  value={jobApp.email}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, email: e.target.value })
+                  }}
                 />
               </div>
             </div>
@@ -77,25 +193,70 @@ const Apply = ({setOpen, job}) => {
                   Mobile
                 </label>
                 <input
-                  type="text"
+                  type="number"
+                  required
                   className="form-control"
                   id="Mobile "
+                  defaultValue={0}
                   placeholder="e.g. 987654321"
+                  value={jobApp.phone}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, phone: parseInt(e.target.value) })
+                  }}
                 />
               </div>
             </div>
 
             <div className="col-md-4">
               <div className="mb-4">
+                <label for="Location" className="form-label">
+                  Current Location
+                </label>
+                <input
+                  type="text"
+                  required={"true"} 
+                  className="form-control"
+                  id="Location"
+                  placeholder="e.g. California"
+                  value={jobApp.location}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, location: e.target.value })
+                  }}
+                />
+              </div>
+            </div>
+
+
+            <div className="col-md-4">
+              <div className="mb-4">
                 <label for="skills " className="form-label">
                   Your skills
                 </label>
-                <select id="skills" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+            <Select
+              size='small'
+              fullWidth
+              required
+              multiple
+              value={jobApp?.applicationSkills?.length > 0 ? jobApp?.applicationSkills : ['']}
+              onChange={e => {
+                if (e.target.value === '') {
+                  setJobApp({ ...jobApp, applicationSkills: [] })
+                } else {
+                  let test = e.target.value.filter(el => {
+                    return el != ''
+                  })
+                  setJobApp({ ...jobApp, applicationSkills: test })
+                }
+              }}
+              defaultValue=''
+              displayEmpty
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              <MenuItem value=''>
+                <span>Choose Skills</span>
+              </MenuItem>
+              {Skills?.length ? Skills?.map(el => <MenuItem value={el.id}>{el.skillName}</MenuItem>) : null}
+            </Select>{' '}
               </div>
             </div>
 
@@ -104,39 +265,47 @@ const Apply = ({setOpen, job}) => {
                 <label for="Experience " className="form-label">
                   Total Experience
                 </label>
-                <select id="Experience" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+                <Select
+              size='small'
+              fullWidth
+              required
+              defaultValue=''
+              value={jobApp.experience}
+              onChange={e => {
+                setJobApp({ ...jobApp, experience: e.target.value })
+              }}
+              displayEmpty
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              <MenuItem value=''>
+                <span>Choose Work Experience</span>
+              </MenuItem>
+              <MenuItem value={"Fresher"}>Fresher</MenuItem>
+              <MenuItem value={"0-1 Years"}>0-1 Years</MenuItem>
+              <MenuItem value={"1-3 Years"}>1-3 Years</MenuItem>
+              <MenuItem value={"3-5 Years"}>3-5 Years</MenuItem>
+              <MenuItem value={"5+ Years"}>5+ Years</MenuItem>
+            </Select>{' '}
               </div>
             </div>
 
-            <div className="col-md-4">
-              <div className="mb-4">
-                <label for="Location " className="form-label">
-                  Current Location
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="Location "
-                  placeholder="e.g. California"
-                />
-              </div>
-            </div>
+
 
             <div className="col-md-4">
               <div className="mb-4">
                 <label for="Current " className="form-label">
-                  Current CTC €
+                  Current Salary
                 </label>
                 <input
                   type="text"
                   className="form-control"
                   id="Current "
-                  placeholder="current ctc"
+                  placeholder="current Salary"
+                  required
+                  value={jobApp.currSalary}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, currSalary: e.target.value })
+                  }}
                 />
               </div>
             </div>
@@ -144,27 +313,46 @@ const Apply = ({setOpen, job}) => {
             <div className="col-md-4">
               <div className="mb-4">
                 <label for="Rate " className="form-label">
-                  Current CTC Rate
+                  Current Salary Rate
                 </label>
-                <select id="Rate" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+                <Select
+              size='small'
+              fullWidth
+              defaultValue={'10'}
+              required
+              displayEmpty
+              value={jobApp.currSalaryRate}
+              onChange={e => {
+                setJobApp({ ...jobApp, currSalaryRate: e.target.value })
+              }}
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              <MenuItem value={''}>
+                <span>--</span>
+              </MenuItem>
+              <MenuItem value={'Per Hour'}>Per Hour</MenuItem>
+              <MenuItem value={'Per Week'}>Per Week</MenuItem>
+              <MenuItem value={'Per Month'}>Per Month</MenuItem>
+              <MenuItem value={'Per Year'}>Per Year</MenuItem>
+            </Select>{' '}
               </div>
             </div>
 
             <div className="col-md-4">
               <div className="mb-4">
                 <label for="expected " className="form-label">
-                  Expected CTC €
+                  Expected Salary
                 </label>
                 <input
                   type="text"
                   className="form-control"
                   id="expected "
+                  required
                   placeholder="expected ctc"
+                  value={jobApp.expectedSalary}
+                  onChange={e => {
+                    setJobApp({ ...jobApp, expectedSalary: e.target.value })
+                  }}
                 />
               </div>
             </div>
@@ -172,14 +360,28 @@ const Apply = ({setOpen, job}) => {
             <div className="col-md-4">
               <div className="mb-4">
                 <label for="1" className="form-label">
-                  Expected CTC Rate
+                  Expected Salary Rate
                 </label>
-                <select id="1" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+                <Select
+              size='small'
+              fullWidth
+              defaultValue={10}
+              displayEmpty
+              required
+              value={jobApp.expectedSalaryRate}
+              onChange={e => {
+                setJobApp({ ...jobApp, expectedSalaryRate: e.target.value })
+              }}
+              inputProps={{ 'aria-label': 'Without label' }}
+            >
+              <MenuItem value={10}>
+                <span>--</span>
+              </MenuItem>
+              <MenuItem value={'Per Hour'}>Per Hour</MenuItem>
+              <MenuItem value={'Per Week'}>Per Week</MenuItem>
+              <MenuItem value={'Per Month'}>Per Month</MenuItem>
+              <MenuItem value={'Per Year'}>Per Year</MenuItem>
+            </Select>{' '}
               </div>
             </div>
 
@@ -188,38 +390,73 @@ const Apply = ({setOpen, job}) => {
                 <label for="Notice" className="form-label">
                   Notice Period
                 </label>
-                <select id="Notice" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+                <Select
+              size='small'
+              fullWidth
+              defaultValue={''}
+              displayEmpty
+              required
+              inputProps={{ 'aria-label': 'Without label' }}
+              value={jobApp.noticePeriod}
+              onChange={e => {
+                setJobApp({ ...jobApp, noticePeriod: e.target.value })
+              }}
+            >
+              <MenuItem value={''}>
+                <span>--</span>
+              </MenuItem>
+              <MenuItem value={'15'}>15 Days</MenuItem>
+              <MenuItem value={'30'}>1 Month</MenuItem>
+              <MenuItem value={'60'}>2 Month</MenuItem>
+              <MenuItem value={'90'}>3 Month</MenuItem>
+            </Select>{' '}
               </div>
             </div>
 
             <div className="col-md-4">
               <div className="mb-4">
-                <label for="about" className="form-label">
+                <label for="ApplicationSource" className="form-label">
                   From where did you hear about us?
                 </label>
-                <select id="about" className="form-select">
-                  <option selected>All</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </select>
+                <Select
+              size='small'
+              fullWidth
+              defaultValue={''}
+              id='ApplicationSource'
+              displayEmpty
+              required
+              inputProps={{ 'aria-label': 'Without label' }}
+              value={jobApp.source}
+              onChange={e => {
+                setJobApp({ ...jobApp, source: e.target.value })
+              }}
+            >
+              <MenuItem value={''}>
+                <span>--</span>
+              </MenuItem>
+              <MenuItem value={'Facebook'}>Facebook</MenuItem>
+              <MenuItem value={'Instagram'}>Instagram</MenuItem>
+              <MenuItem value={'Whatsapp'}>Whatsapp</MenuItem>
+              <MenuItem value={'LinkedIn'}>LinkedIn</MenuItem>
+            </Select>{' '}
               </div>
             </div>
 
-            <div md={12}>
+            <div className="col-md-12">
+            <label htmlFor="Resume" className="mb-2">Resume</label>
+            <Upload file={file} setFile={setFile} />
+            </div>
+
+
+            <div className="col-md-12">
               <div className="my-4">
-                <label htmlFor="">Cover Letter</label>
-                <textarea className="form-control" rows="5"></textarea>
+                <label htmlFor="Cover"  className="mb-2">Cover Letter (optional)</label>
+                <textarea className="form-control" required={true} id='Cover' placeholder="Enter some information about your experience" rows="5"></textarea>
               </div>
             </div>
           </div>
           <div className="text-dark">
-            <h2 className="mb-5">Terms And Condition</h2>
+            <h2 className="mb-3">Terms and Conditions: </h2>
             <p>
               If any provision of these Terms and Conditions is held to be
               invalid or unenforceable, the provision shall be removed (or
@@ -259,14 +496,28 @@ const Apply = ({setOpen, job}) => {
           </div>
 
           <div>
-            <button className="btn btn-primary my-5 me-3 px-3">Apply</button>
-            <button className="btn btn-light my-5 px-3" onClick={() => {setOpen(false)}}>Cancel</button>
+            <button type='submit' className="btn btn-primary me-3 px-3 coloredBtn" style={{width: "160px"}}>
+            {loading ? (
+                <div style={{ fontSize: '15px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  Loading... <CircularProgress size={23} sx={{ color: '#FFF', ml: 2 }} />
+                </div>
+              ) : (
+                'Submit'
+              )}
+
+            </button>
+            <button className="btn btn-light my-5 px-3" style={{width: "120px"}} onClick={() => {setOpen(false)}}>Cancel</button>
           </div>
+          </form>
+
         </div>
       </div>
 
       <div></div>
-    </section>
+    </section>}
+
+
+    </>
   );
 };
 

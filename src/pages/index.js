@@ -45,7 +45,7 @@ export default function App() {
               </div>
 
               <div className="p-3 mt-4 py-5 text-dark bg-white">
-                <h4 className="mb-3 " style={{fontWeight: "500"}}>ABNOUR SOFTWARE HOUSE</h4>
+                <h4 className="mb-3 " style={{fontWeight: "500"}}>ABNOUR GROUP</h4>
                 <p className="mb-4">A leader in innovative solutions</p>
 
                 <h4 className="mb-3">About Us</h4>

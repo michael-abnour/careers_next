@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import Apply from "./Apply";
 import { useState } from "react";
-import {MdWork} from "react-icons/md"
-
+import {MdOutlineMonetizationOn, MdWork} from "react-icons/md"
+import { useDispatch, useSelector } from "react-redux";
+import { getHiringJobs } from "@/store/HiringJobs";
+import {FcMindMap, FcSelfServiceKiosk} from 'react-icons/fc'
+import {FaMapMarkerAlt} from 'react-icons/fa'
+import {AiOutlineArrowRight} from 'react-icons/ai'
+import {BsBookmarkCheck, BsShare} from 'react-icons/bs'
 const Job = ({ close }) => {
   const [create, setCreate] = useState(false);
   const [activeItem, setActiveItem] = useState({})
@@ -12,8 +17,19 @@ const Job = ({ close }) => {
     {jobId: "2", jobTitle: "Backend Developer", Department: "Developers", SalrayRange: "180$ - 200$", experience: "1-2 Years", skills: ["Html", 'Css', "JavaScript", "React Js"]},
     {jobId: "3", jobTitle: "DevOps Developer", Department: "Developers", SalrayRange: "130$ - 220$", experience: "1 Year", skills: ["Html", 'Css', "JavaScript", "React Js"]},
     {jobId: "4", jobTitle: "Project Manager", Department: "Developers", SalrayRange: "150$ - 280$", experience: "2-5 Years", skills: ["Business Analysis", 'System Design', "JavaScript", "System Analysis"]},
-
   ]
+  const {HiringJobs} = useSelector((state) => state.HiringJobsSlice)
+
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch(getHiringJobs())
+  }, [dispatch])
+
+  useEffect(() => {
+    setActiveItem(HiringJobs[0])
+  }, [HiringJobs])
+
+  console.log(HiringJobs)
   return (
     <>
       {create ? (
@@ -21,15 +37,14 @@ const Job = ({ close }) => {
       ) : (
         <>
         <div className="small_nav">
-        <div><img className="Img" src="./abnour.png" width={200} style={{width: "200px !important"}}/></div>
-        <div className="Title">ABNOUR Software House</div>
-        <div className="Button"><button>Go To Dashboard</button></div>
+        <div className="col-sm-12 col-lg-3"><img className="Img" src="./abnour.png" width={200} style={{width: "200px !important"}}/></div>
+        <div className="col-sm-12 col-lg-3 Title text-center">ABNOUR GROUP</div>
         </div>
           <section className="bg-light" style={{paddingTop: '80px'}}>
             <div className="">
               <div className="container py-5  bg-white border border-1 border-opacity-10">
                 <div className="row align-items-center">
-                  <div className="col-md-2">
+                  <div className="col-md-4 col-lg-2 mb-3">
                     <h5 className="text-dark mb-3">Department</h5>
                     <div>
                       <select
@@ -44,7 +59,7 @@ const Job = ({ close }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-2">
+                  <div className="col-md-4 col-lg-2 mb-3" >
                     <h5 className="text-dark mb-3">Job Type</h5>
                     <div>
                       <select
@@ -59,7 +74,7 @@ const Job = ({ close }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-2">
+                  <div className="col-md-4 col-lg-2 mb-3">
                     <h5 className="text-dark mb-3">Work Experience</h5>
                     <div>
                       <select
@@ -74,7 +89,7 @@ const Job = ({ close }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-2">
+                  <div className="col-md-4 col-lg-2 mb-3">
                     <h5 className="text-dark mb-3">Job Category</h5>
                     <div>
                       <select
@@ -89,7 +104,7 @@ const Job = ({ close }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-2">
+                  <div className="col-md-4 col-lg-2 mb-3">
                     <h5 className="text-dark mb-3">Remote Job</h5>
                     <div>
                       <select
@@ -104,7 +119,7 @@ const Job = ({ close }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-2 mt-5">
+                  <div className="col-md-4 col-lg-2 mb-3 mt-5">
                     <div>
                       <button className="btn btn-primary me-5 px-3 py-2">
                         Apply
@@ -120,18 +135,21 @@ const Job = ({ close }) => {
               <div className="container vh-100 mt-5 bg-white rounded-2">
                 <div className="row">
                   <div className="col-md-4">
-                    <div className="row">
+                    <div className="row jobsCol">
                       {
-                        theJobs.length !== undefined ? theJobs?.map((el) => {
+                        HiringJobs.length !== undefined ? HiringJobs?.map((el) => {
                           return (
-                            <div onClick={() => {setActiveItem(el)}} className={`col-md-12 jobBox ${activeItem.jobId === el.jobId ? "activeItem" : ""}`}>
-                            <div className="py-5 px-2 text-dark ">
-                              <h5 className="mb-2">{el.jobTitle}</h5>
+                            <div onClick={() => {setActiveItem(el)}} className={`col-md-12 jobBox ${activeItem?.id === el?.id ? "activeItem" : ""}`}>
+                            <div className="py-4 px-2 text-dark ">
+                              <h5 className="mb-2">{el?.designation?.DesignationName} {el?.job?.JobTitle}</h5>
                               <div className="d-flex justify-content-between align-items-center">
                                 <div className="text-start">Trainee</div>
-                                <div className="text-end">{el.Department}</div>
                               </div>
-                              <span>ABNOUR SOFTWARE HOUSE</span>
+                              <span>ABNOUR Group</span>
+
+                              <div className="text-start mt-4"><FaMapMarkerAlt /> Cairo, Egypt</div>
+
+
                             </div>
                           </div>
                           )
@@ -142,39 +160,37 @@ const Job = ({ close }) => {
                   </div>
 
                   <div className="col-md-8" >
-                    <div className="text-dark py-5 px-3">
+                    <div className="text-dark py-5 px-3" style={{fontSize: '19px'}}>
                       <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h4 className="mb-2">{activeItem?.jobTitle}</h4>
+                        <h2 className="mb-2"><FcMindMap size={30} className="me-2"/>{activeItem?.designation?.DesignationName} {activeItem?.job?.JobTitle}</h2>
                         <div>
-                          <button className="btn btn-light px-4 py-2 me-3">
-                            Share Link
+                          <button className="btn btn-light px-4 py-2 me-3 d-inline-flex gap-2 align-items-center">
+                          <BsShare />  Share Link
                           </button>
-                          <button onClick={()=>{setCreate(true)}} className="btn btn-primary px-4 py-2">
-                            Apply
+                          <button onClick={()=>{setCreate(true)}} className="btn btn-primary px-4 py-2 d-inline-flex gap-2 align-items-center">
+                          <BsBookmarkCheck />  Apply
                           </button>
                         </div>
                       </div>
 
-                      <span className="me-3"> {activeItem?.experience}</span>
+                      <span className="me-3"><FcSelfServiceKiosk /> {activeItem?.experience}</span>
+                      <span className="me-3"><FaMapMarkerAlt/> Cairo, Egypt</span>
 
 
-                      <p className="mt-2">{activeItem?.SalrayRange}</p>
+                      <p className="mt-2 d-flex align-items-center"><MdOutlineMonetizationOn />{activeItem?.minSalary} - {activeItem?.maxSalary}</p>
 
-                      <p className="mb-2">Skills Required</p>
+                      <p className="mb-2">Skills Required:</p>
 
-                      <ul>
-                      {activeItem?.skills?.map((el) => {
+                 
+                      {activeItem?.HiringJobSkills?.map((el) => {
                           return (
-                            <li>{el}</li>
+                            <span className="d-flex align-items-center gap-2"><AiOutlineArrowRight />{el?.skill?.skillName}</span>
                           )                          
                         })}
-                        </ul>
-                      <h5 className="mb-2">Description</h5>
+                       
+                      <h5 className="mb-2 mt-4">Description</h5>
                       <p>
-                        Qui delectus asperiores est quia ducimus corporis.
-                        Similique repellendus voluptatem quisquam molestiae
-                        libero quasi sint illo. Aut voluptas earum saepe. Vel
-                        iusto praesentium quis sunt.
+                        {activeItem?.description}
                       </p>
                     </div>
                   </div>
