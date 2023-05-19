@@ -9,8 +9,13 @@ import {FcMindMap, FcSelfServiceKiosk} from 'react-icons/fc'
 import {FaMapMarkerAlt} from 'react-icons/fa'
 import {AiOutlineArrowRight} from 'react-icons/ai'
 import {BsBookmarkCheck, BsShare} from 'react-icons/bs'
+import { EditorState, convertFromRaw, convertToRaw } from 'draft-js'
+import ReactDraftWysiwyg from '../Components/ReactDraftWysiwyg'
+import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css'
 const Job = ({ close }) => {
   const [create, setCreate] = useState(false);
+  const [editorState, setEditorState] = useState(EditorState.createEmpty())
+
   const [activeItem, setActiveItem] = useState({})
   const theJobs = [
     {jobId: "1", jobTitle: "Frontend Developer", Department: "Developers", SalrayRange: "155$ - 200$", experience: "1-3 Years", skills: ["Html", 'Css', "JavaScript", "React Js"]},
@@ -27,7 +32,20 @@ const Job = ({ close }) => {
 
   useEffect(() => {
     setActiveItem(HiringJobs[0])
+
+    if (activeItem?.description) {
+      setEditorState(EditorState.createWithContent(convertFromRaw(JSON.parse(activeItem?.description))))
+    }
+
   }, [HiringJobs])
+
+
+  const handleSetActiveItem = (el) => {
+    setActiveItem(el)
+
+    setEditorState(EditorState.createWithContent(convertFromRaw(JSON.parse(el?.description))))
+
+  }
 
   console.log(HiringJobs)
   return (
@@ -132,14 +150,14 @@ const Job = ({ close }) => {
             </div>
 
             <div className="vh-100 ">
-              <div className="container vh-100 mt-5 bg-white rounded-2">
+              <div className="container vh-100 mt-5 bg-white rounded-2" style={{  minHeight: '100vh !important',  height: 'fit-content !important'}}>
                 <div className="row">
                   <div className="col-md-4">
                     <div className="row jobsCol">
                       {
                         HiringJobs.length !== undefined ? HiringJobs?.map((el) => {
                           return (
-                            <div onClick={() => {setActiveItem(el)}} className={`col-md-12 jobBox ${activeItem?.id === el?.id ? "activeItem" : ""}`}>
+                            <div onClick={() => {handleSetActiveItem(el)}} className={`col-md-12 jobBox ${activeItem?.id === el?.id ? "activeItem" : ""}`}>
                             <div className="py-4 px-2 text-dark ">
                               <h5 className="mb-2">{el?.designation?.DesignationName} {el?.job?.JobTitle}</h5>
                               <div className="d-flex justify-content-between align-items-center">
@@ -188,10 +206,21 @@ const Job = ({ close }) => {
                           )                          
                         })}
                        
-                      <h5 className="mb-2 mt-4">Description</h5>
-                      <p>
-                        {activeItem?.description}
-                      </p>
+                      <h5 className="mb-2 mt-4" style={{    borderBottom: '1px solid #8c8b8b',paddingBottom: '10px'}}>Job Description:</h5>
+                        {/* {activeItem?.description} */}
+                        <div >
+                          
+
+                        <ReactDraftWysiwyg
+                    toolbarHidden
+                    readOnly={true}
+                    editorState={editorState}
+                    toolbarClassName='toolbarClassName'
+                    wrapperClassName='wrapperClassName'
+                    editorClassName='editorClassName'
+                    // onEditorStateChange={updateTextDescription}
+                    />
+                    </div>
                     </div>
                   </div>
                 </div>
