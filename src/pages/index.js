@@ -3,9 +3,11 @@ import { useState } from "react";
 import {MdWork} from "react-icons/md"
 import Job from "./Jobs";
 import Link from "next/link";
+import { Grid, useMediaQuery } from "@mui/material";
 
 export default function App() {
   const [open, setOpen] = useState(false);
+  const max1000px = useMediaQuery('(max-width:1000px)');
 
   return (
     <>
@@ -22,16 +24,16 @@ export default function App() {
     objectFit: 'cover'}}/>
                 </div>
                 <div>
-                  <div className="d-flex justify-content-between align-items-center p-2">
-                    <div className="text-dark text-center">
+                  <Grid container sx={{paddingBottom: "10px"}}>
+                    <Grid item xs={12} md={6} display= {"flex"} alignItems={"center"} justifyContent={max1000px ? "center" : "flex-start"}>
                       <img
                                   style={{width: "405px !important"}}
                         src="./abnour.png"
                         alt=""
                         className="abnourLogo"
 />
-                    </div>
-                    <div>
+                    </Grid>
+                    <Grid item xs={12} md={6} display= {"flex"} alignItems={"center"} justifyContent={max1000px ? "center" : "flex-end"}>
                       <Link href='/Jobs'>
                       <button
                         className="btn btn-info text-white p-2 px-5 me-3 jobsBtn"
@@ -39,8 +41,8 @@ export default function App() {
                         <MdWork /> Jobs
                       </button>
                         </Link>
-                    </div>
-                  </div>
+                    </Grid>
+                  </Grid>
                 </div>
               </div>
 

@@ -1,19 +1,46 @@
 import { getSkills } from "@/store/Skills";
-import { Button, CircularProgress, InputLabel, MenuItem, Select } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, InputLabel, MenuItem, Select, Typography, useMediaQuery } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { BsArrowRight, BsFileEarmarkArrowUp } from "react-icons/bs";
 import {MdDone, MdOutlineWork, MdWork, MdWorkOutline} from "react-icons/md"
 import { useDispatch, useSelector } from "react-redux";
+import { styled } from '@mui/material/styles'
 
 import Upload from "./Upload";
 import toast, { Toaster } from 'react-hot-toast';
 import { createJobApplication } from "@/store/JobApplications";
 import Link from "next/link";
 import AOS from "aos";
+import DropzoneWrapper from './DropzoneWrapper'
+
+import { useDropzone } from 'react-dropzone'
 
 import "aos/dist/aos.css";
 
+
+
+const Img = styled('img')(({ theme }) => ({
+  [theme.breakpoints.up('md')]: {
+    marginRight: theme.spacing(10)
+  },
+  [theme.breakpoints.down('md')]: {
+    marginBottom: theme.spacing(4)
+  },
+  [theme.breakpoints.down('sm')]: {
+    width: 250
+  }
+}))
+
+// Styled component for the heading inside the dropzone area
+const HeadingTypography = styled(Typography)(({ theme }) => ({
+  marginBottom: theme.spacing(5),
+  [theme.breakpoints.down('sm')]: {
+    marginBottom: theme.spacing(4)
+  }
+}))
+
 const Apply = ({setOpen, job}) => {
+  const max1000px = useMediaQuery('(max-width:1000px)');
   const [file, setFile] = useState('')
   const [loading, setLoading] = useState(false)
   const [isCreated, setIsCreated] = useState(false)
@@ -48,6 +75,58 @@ const Apply = ({setOpen, job}) => {
   }, []);
 
 
+
+
+
+  const [files, setFiles] = useState([])
+
+  // ** Hook
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: false,
+    accept: {
+      'application/pdf/*': ['.pdf', '.docx']
+    },
+    onDrop: acceptedFiles => {
+      setFiles(acceptedFiles.map(file => Object.assign(file)))
+
+      // state from create job application page
+      setFile(acceptedFiles.map(file => Object.assign(file)))
+    }
+  })
+
+  const handleLinkClick = event => {
+    event.preventDefault()
+  }
+
+  const name = files.map(file => <span className='file-name'>{file.name} </span>)
+
+    const Ext = files[0]?.name?.split('.')[1]
+
+    const img = files.map(file => (
+      <div
+        style={{
+          height: '200px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '20px'
+        }}
+      >
+        <img
+          key={file.name}
+          alt={file.name}
+          className='single-file-image'
+          src={`/${Ext}.png`}
+          style={{ width: '130px', height: '130px', objectFit: 'contain', position: 'relative', objectFit: 'contain' }}
+        />
+        <span>File Name: {file.name}</span>
+      </div>
+    ))
+
+
+
+
   const handleCreate = async e => {
     e.preventDefault()
     setLoading(true)
@@ -64,8 +143,18 @@ const Apply = ({setOpen, job}) => {
       }
       formData.append(key, jobApp[key])
     }
-    for (var pair of formData.entries()) {
-      console.log(pair[0] + ', ' + pair[1])
+    // for (var pair of formData.entries()) {
+    //   console.log(pair[0] + ', ' + pair[1])
+    // }
+
+    console.log(file.length)
+
+    if(file.length == 0){
+        toast.error('Please Upload A File.', {
+            duration: 2000
+          })
+          setLoading(false)
+          return 
     }
     await dispatch(createJobApplication(formData)).then(res => {
       setLoading(false)
@@ -114,23 +203,24 @@ const Apply = ({setOpen, job}) => {
             <img src="./landing.jpg" alt="img" className="w-100 " style={{height: "200px", objectFit: "cover"}}/>
           </div>
           <div>
-            <div className="d-flex justify-content-between align-items-center p-2">
-              <div className="text-dark text-center  py-2 ">
-              <img
+          <Grid container sx={{paddingBottom: "10px"}}>
+                    <Grid item xs={12} md={6} display= {"flex"} alignItems={"center"} justifyContent={max1000px ? "center" : "flex-start"}>
+                      <img
+                                  style={{width: "405px !important"}}
                         src="./abnour.png"
                         alt=""
-            className="abnourLogo"
-
+                        className="abnourLogo"
 />
-              </div>
-              <div>
-                <button
-                  className="btn btn-info text-white p-2 px-5 me-3 jobsBtn"
-                >
+                    </Grid>
+                    <Grid item xs={12} md={6} display= {"flex"} alignItems={"center"} justifyContent={max1000px ? "center" : "flex-end"}>
+                      <button
+                      onClick={() => {setOpen(false)}}
+                        className="btn btn-info text-white p-2 px-5 me-3 jobsBtn"
+                        >
                         <MdWork /> Jobs
-                </button>
-              </div>
-            </div>
+                      </button>
+                    </Grid>
+                  </Grid>
           </div>
         </div>
       </div>
@@ -444,14 +534,63 @@ const Apply = ({setOpen, job}) => {
 
             <div className="col-md-12">
             <label htmlFor="Resume" className="mb-2">Resume</label>
-            <Upload file={file} setFile={setFile} />
+            <DropzoneWrapper>
+        <Grid container spacing={6} className='match-height'>
+          <Grid item xs={12}>
+            <>
+              <Box {...getRootProps({ className: 'dropzone' })} sx={files.length ? { height: 200 } : {}}>
+                <input  {...getInputProps()} />
+                  
+
+                {files.length ? (
+                  img
+                ) : (
+                  <Box sx={{ display: 'flex', flexDirection: ['column', 'column', 'row'], alignItems: 'center' }}>
+                    <Img width={300} alt='Upload img' src='/upload.png' />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: ['center', 'center', 'inherit'] }}>
+                      <HeadingTypography variant='h5'>Drop files here or click to upload.</HeadingTypography>
+                      <Typography color='textSecondary'>
+                        Drop files here or click{' '}
+                        <Link href='/' onClick={handleLinkClick}>
+                          browse
+                        </Link>{' '}
+                        thorough your machine
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
+              {files?.length ? (
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Button
+                    sx={{ background: '#ff473a', color: '#FFF', width: '250px', mt: 3 }}
+                    onClick={() => {
+                      setFiles([])
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : null}
+            </>
+          </Grid>
+        </Grid>
+      </DropzoneWrapper>
+
+            {/* <Upload file={file} setFile={setFile} /> */}
             </div>
 
 
             <div className="col-md-12">
               <div className="my-4">
                 <label htmlFor="Cover"  className="mb-2">Cover Letter (optional)</label>
-                <textarea className="form-control" required={true} id='Cover' placeholder="Enter some information about your experience" rows="5"></textarea>
+                <textarea className="form-control" accordion
+                              value={jobApp.coverLetter}
+                              onChange={e => {
+                                setJobApp({ ...jobApp, coverLetter: e.target.value })
+                              }}
+                               required={true} id='Cover' placeholder="Enter some information about your experience" rows="5"></textarea>
               </div>
             </div>
           </div>

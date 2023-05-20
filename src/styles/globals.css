@@ -183,7 +183,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  z-index: 555;
 }
 
 .small_nav {
@@ -250,4 +250,27 @@ border-radius: 4px;
   font-family: 'Raleway';
   display: flex;
   align-items: center;
+}
+@media (max-width: 768px) {
+  .successParent h2 {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .logoAndBtn {
+    flex-direction: column;
+  }
+
+  .HeaderName {
+    font-size: 15px;
+  }
+}
+
+
+body {
+  min-height: 100vh;
+  height: fit-content;
 }

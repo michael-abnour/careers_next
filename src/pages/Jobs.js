@@ -12,9 +12,11 @@ import {BsBookmarkCheck, BsShare} from 'react-icons/bs'
 import { EditorState, convertFromRaw, convertToRaw } from 'draft-js'
 import ReactDraftWysiwyg from '../Components/ReactDraftWysiwyg'
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css'
+import { Grid, MenuItem, Select, useMediaQuery } from "@mui/material";
 const Job = ({ close }) => {
   const [create, setCreate] = useState(false);
   const [editorState, setEditorState] = useState(EditorState.createEmpty())
+  const max1000px = useMediaQuery('(max-width:1000px)');
 
   const [activeItem, setActiveItem] = useState({})
   const theJobs = [
@@ -56,7 +58,7 @@ const Job = ({ close }) => {
         <>
         <div className="small_nav">
         <div className="col-sm-12 col-lg-3"><img className="Img" src="./abnour.png" width={200} style={{width: "200px !important"}}/></div>
-        <div className="col-sm-12 col-lg-3 Title text-center">ABNOUR GROUP</div>
+        <div className="col-sm-12 col-lg-3 Title text-center HeaderName">ABNOUR GROUP</div>
         </div>
           <section className="bg-light" style={{paddingTop: '80px'}}>
             <div className="">
@@ -149,8 +151,86 @@ const Job = ({ close }) => {
               </div>
             </div>
 
-            <div className="vh-100 ">
-              <div className="container vh-100 mt-5 bg-white rounded-2" style={{  minHeight: '100vh !important',  height: 'fit-content !important'}}>
+            <div >
+              <div className="container mt-5 bg-white rounded-2" style={{  minHeight: '100vh !important',  height: 'fit-content !important'}}>
+              {max1000px ? 
+              (<div className="row d-flex flex-column py-4">
+                <div className="col-sm-12">
+                <div className="mb-4">
+                <label for="ApplicationSource" className="form-label">
+                  Choose Job
+                </label>
+                <Select
+              size='small'
+              fullWidth
+              defaultValue={''}
+              id='ApplicationSource'
+              displayEmpty
+              required
+              inputProps={{ 'aria-label': 'Without label' }}
+              value={activeItem?.id}
+            >
+              <MenuItem value={''}>
+                <span>--</span>
+              </MenuItem>
+                {HiringJobs?.length != undefined ? 
+                 HiringJobs?.map((el) => {
+                  return (
+                    <MenuItem onClick={() => {handleSetActiveItem(el)}} value={el.id}>{el?.designation?.DesignationName} {el?.job?.JobTitle}</MenuItem>
+                  )
+                 })
+                 : null}
+            </Select>{' '}
+              </div>
+                </div>
+                <div className="col-sm-12 overflow-y-scroll">
+                <div className="text-dark py-5 px-3" style={{fontSize: '19px'}}>
+                      <Grid container  className="" rowGap={{xs:1, md:1}} >
+                        <Grid item xs={12} lg={6}>
+                        <h2 className=""><FcMindMap size={30} className="me-2"/>{activeItem?.designation?.DesignationName} {activeItem?.job?.JobTitle}</h2>
+
+                        </Grid>
+                        <Grid item xs={12} lg={6} marginBottom={{xs:2}}>
+                        <button style={{width: "100%"}} onClick={()=>{setCreate(true)}} className="btn btn-primary ">
+                          <BsBookmarkCheck />  Apply
+                          </button>
+                        </Grid>
+
+                      </Grid>
+
+                      <span className="me-3"><FcSelfServiceKiosk /> {activeItem?.experience}</span>
+                      <span className="me-3"><FaMapMarkerAlt/> Cairo, Egypt</span>
+
+
+                      <p className="mt-2 d-flex align-items-center"><MdOutlineMonetizationOn />{activeItem?.minSalary} - {activeItem?.maxSalary}</p>
+
+                      <p className="mb-2">Skills Required:</p>
+
+                 
+                      {activeItem?.HiringJobSkills?.map((el) => {
+                          return (
+                            <span className="d-flex align-items-center gap-2"><AiOutlineArrowRight />{el?.skill?.skillName}</span>
+                          )                          
+                        })}
+                       
+                      <h5 className="mb-2 mt-4" style={{    borderBottom: '1px solid #8c8b8b',paddingBottom: '10px'}}>Job Description:</h5>
+                        {/* {activeItem?.description} */}
+                        <div >
+                          
+
+                        <ReactDraftWysiwyg
+                    toolbarHidden
+                    readOnly={true}
+                    editorState={editorState}
+                    toolbarClassName='toolbarClassName'
+                    wrapperClassName='wrapperClassName'
+                    editorClassName='editorClassName'
+                    // onEditorStateChange={updateTextDescription}
+                    />
+                    </div>
+                    </div>
+                </div>
+              </div>) :
                 <div className="row">
                   <div className="col-md-4">
                     <div className="row jobsCol">
@@ -223,7 +303,9 @@ const Job = ({ close }) => {
                     </div>
                     </div>
                   </div>
-                </div>
+                </div>}
+
+
               </div>
             </div>
           </section>

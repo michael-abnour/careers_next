@@ -84,7 +84,10 @@ const Upload = ({ file, setFile }) => {
           <Grid item xs={12}>
             <>
               <Box {...getRootProps({ className: 'dropzone' })} sx={files.length ? { height: 200 } : {}}>
-                <input {...getInputProps()} />
+                <form onSubmit={(e) => e.preventDefault()}>
+                <input required {...getInputProps()} />
+                  
+                </form>
 
                 {files.length ? (
                   img
